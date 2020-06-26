@@ -13,9 +13,19 @@
 #include <xcb/xcb.h>
 #include <xcb/randr.h>
 
+static char *bname;
+
+enum {
+	ERR_NONE,
+	ERR_UNKNOWN_OPTION,
+	ERR_NUM_ARGS,
+	ERR_NOT_EXECUTABLE,
+	ERR_PLEDGE
+};
+
 void
-usage(const char *argv, const int e_val) {
-	printf("usage: %s [-h] [-v] script\n", argv);
+usage(const int e_val) {
+	printf("usage: %s [-h] [-v] script\n", bname);
 	exit(e_val);
 }
 
@@ -55,7 +65,7 @@ xhotplug(const char *cmd) {
 }
 
 int
-can_execute(const char *bname, const char *path) {
+can_execute(const char *path) {
 	uid_t uid = getuid();
 	gid_t gid = getgid();
 	gid_t gidset[NGROUPS_MAX];
@@ -96,21 +106,23 @@ can_execute(const char *bname, const char *path) {
 
 int
 main(int argc, char **argv) {
-	char ch, *bname = basename(argv[0]), script[PATH_MAX], sbuf[PATH_MAX];
+	char ch, script[PATH_MAX], sbuf[PATH_MAX];
 	ssize_t sbuf_len;
 	int pval;
+
+	bname = basename(argv[0]);
 
 	while ((ch = getopt(argc, argv, "vh")) != -1) {
 		switch (ch) {
 		case 'v':
 			printf("%s %s\n", bname, VERSION);
-			exit(0);
+			exit(ERR_NONE);
 			break;
 		case 'h':
-			usage(bname, 0);
+			usage(ERR_NONE);
 			break;
 		default:
-			usage(bname, 1);
+			usage(ERR_UNKNOWN_OPTION);
 		}
 	}
 	argc -= optind;
@@ -118,7 +130,7 @@ main(int argc, char **argv) {
 
 	if ( argc < 1 || argc > 1) {
 		printf("%s: invalid number of arguments\n", bname);
-		usage(bname, 2);
+		usage(ERR_NUM_ARGS);
 	}
 
 	sbuf_len = strnlen(argv[0], PATH_MAX);
@@ -130,15 +142,15 @@ main(int argc, char **argv) {
 		script[PATH_MAX - 1] = '\0';
 	}
 
-	if(!can_execute(bname, script)) {
+	if(!can_execute(script)) {
 		fprintf(stderr, "%s: cannot run provided script. quitting.\n", bname);
-		usage(bname, 3);
+		usage(ERR_NOT_EXECUTABLE);
 	}
 
 #ifdef __OpenBSD__
 	if ((pval = pledge("stdio unix rpath proc exec", NULL)) != 0) {
 		fprintf(stderr, "%s: call to pledge(2) failed -- %d. quitting.\n", bname, pval);
-		exit(6);
+		exit(ERR_PLEDGE);
 	}
 #endif
 
