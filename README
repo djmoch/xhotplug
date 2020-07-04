@@ -1,0 +1,32 @@
+xhotplug
+========
+
+X11 monitor attach/detach event responder
+
+Installation
+------------
+
+$ make
+# make install
+
+Usage
+-----
+
+There are several ways to make use of xhotplug. The easiest is to
+add the following line to $HOME/.xession (or $HOME/.xinitrc if you
+use xinit):
+
+	xhotplug script &
+
+Many desktop environments provide a way to add startup programs,
+although they probably also detect new displays on their own.
+
+Documentation
+-------------
+
+See xhotplug(1)
+
+License Terms
+-------------
+
+See the LICENSE file in this repository

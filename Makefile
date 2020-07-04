@@ -1,3 +1,6 @@
+# See LICENSE file for copyright and license details
+.POSIX:
+
 include config.mk
 
 all: xhotplug
@@ -10,11 +13,23 @@ xhotplug: ${OBJ}
 
 install: xhotplug
 	install -Dm755 xhotplug ${DESTDIR}${PREFIX}/bin/xhotplug
+	install -Dm644 xhotplug.1 ${DESTDIR}${MANPATH}/man1/xhotplug.1
 
 uninstall:
-	-rm -f ${DESTDIR}${PREFIX}/bin/xhotplug
+	rm -f ${DESTDIR}${PREFIX}/bin/xhotplug
+	rm -f ${DESTDIR}${MANPATH}/man1/xhotplug.1
 
 clean:
-	-rm *.o xhotplug
+	rm *.o xhotplug
 
-.PHONY: all clean install uninstall
+dist:
+	rm -rf xhotplug-${VERSION}
+	mkdir xhotplug-${VERSION}
+	cp ${DIST_SRC} xhotplug-${VERSION}
+	tar -cf xhotplug-${VERSION} | gzip > xhotplug-${VERSION}.tar.gz
+
+distclean:
+	rm -rf xhotplug-${VERSION}
+	rm -f xhotplug-${VERSION}.tar.gz
+
+.PHONY: all clean install uninstall dist
