@@ -20,7 +20,7 @@ uninstall:
 	rm -f ${DESTDIR}${MANPATH}/man1/xhotplug.1
 
 clean:
-	rm *.o xhotplug
+	rm -f *.o xhotplug
 
 dist:
 	rm -rf xhotplug-${VERSION}
@@ -32,4 +32,4 @@ distclean:
 	rm -rf xhotplug-${VERSION}
 	rm -f xhotplug-${VERSION}.tar.gz
 
-.PHONY: all clean install uninstall dist
+.PHONY: all clean install uninstall dist distclean
