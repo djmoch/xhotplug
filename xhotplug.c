@@ -1,6 +1,4 @@
-/*
- * Compile with -lxcb -lxcb-randr
- */
+/* See LICENSE file for copyright and license details. */
 
 #include <errno.h>
 #include <libgen.h>
@@ -13,7 +11,7 @@
 #include <xcb/xcb.h>
 #include <xcb/randr.h>
 
-static char *bname;
+static char *argv0;
 
 enum {
 	ERR_NONE,
@@ -25,7 +23,7 @@ enum {
 
 void
 usage(const int e_val) {
-	printf("usage: %s [-h] [-v] script\n", bname);
+	printf("usage: %s [-h] [-v] script\n", argv0);
 	exit(e_val);
 }
 
@@ -72,23 +70,27 @@ can_execute(const char *path) {
 	struct stat sb;
 
 	if (stat(path, &sb) != 0) {
-		fprintf(stderr, "%s: ERROR -- Unable to stat file %s\n", bname, path);
-		fprintf(stderr, "%s: errno -- %d\n", bname, errno);
+		fprintf(stderr, "%s: ERROR -- Unable to stat file %s\n", argv0, path);
+		fprintf(stderr, "%s: errno -- %d\n", argv0, errno);
+		return 0;
+	}
+	if ((sb.st_mode & (S_IWGRP | S_IWOTH)) != 0) {
+		fprintf(stderr, "%s: script is writeable by others\n", argv0);
 		return 0;
 	}
 	if (sb.st_uid != uid && sb.st_uid != 0) {
-		fprintf(stderr, "%s: script not owned by user or root\n", bname);
+		fprintf(stderr, "%s: script not owned by user or root\n", argv0);
 		return 0;
 	}
 	if (sb.st_uid == uid && (sb.st_mode & S_IXUSR) == 0) {
-		fprintf(stderr, "%s: script is not executable\n", bname);
+		fprintf(stderr, "%s: script is not executable\n", argv0);
 		return 0;
 	}
 	if (sb.st_uid == 0) {
 		for (int i=0; i<getgroups(NGROUPS_MAX, gidset); i++) {
 			if (gidset[i] == gid) {
 				if ((sb.st_mode & S_IXGRP) == 0) {
-					fprintf(stderr, "%s: script is not executable\n", bname);
+					fprintf(stderr, "%s: script is not executable\n", argv0);
 					return 0;
 				}
 				else {
@@ -96,10 +98,6 @@ can_execute(const char *path) {
 				}
 			}
 		}
-	}
-	if ((sb.st_mode & (S_IWGRP | S_IWOTH)) != 0) {
-		fprintf(stderr, "%s: script is writeable by others\n", bname);
-		return 0;
 	}
 	return 1;
 }
@@ -110,12 +108,12 @@ main(int argc, char **argv) {
 	ssize_t sbuf_len;
 	int pval;
 
-	bname = basename(argv[0]);
+	argv0 = basename(argv[0]);
 
 	while ((ch = getopt(argc, argv, "vh")) != -1) {
 		switch (ch) {
 		case 'v':
-			printf("%s %s\n", bname, VERSION);
+			printf("%s %s\n", argv0, VERSION);
 			exit(ERR_NONE);
 			break;
 		case 'h':
@@ -129,7 +127,7 @@ main(int argc, char **argv) {
 	argv += optind;
 
 	if ( argc < 1 || argc > 1) {
-		printf("%s: invalid number of arguments\n", bname);
+		printf("%s: invalid number of arguments\n", argv0);
 		usage(ERR_NUM_ARGS);
 	}
 
@@ -143,13 +141,13 @@ main(int argc, char **argv) {
 	}
 
 	if(!can_execute(script)) {
-		fprintf(stderr, "%s: cannot run provided script. quitting.\n", bname);
+		fprintf(stderr, "%s: cannot run provided script. quitting.\n", argv0);
 		usage(ERR_NOT_EXECUTABLE);
 	}
 
 #ifdef __OpenBSD__
 	if ((pval = pledge("stdio unix rpath proc exec", NULL)) != 0) {
-		fprintf(stderr, "%s: call to pledge(2) failed -- %d. quitting.\n", bname, pval);
+		fprintf(stderr, "%s: call to pledge(2) failed -- %d. quitting.\n", argv0, pval);
 		exit(ERR_PLEDGE);
 	}
 #endif
