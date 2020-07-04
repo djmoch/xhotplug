@@ -26,7 +26,7 @@ dist:
 	rm -rf xhotplug-${VERSION}
 	mkdir xhotplug-${VERSION}
 	cp ${DIST_SRC} xhotplug-${VERSION}
-	tar -cf xhotplug-${VERSION} | gzip > xhotplug-${VERSION}.tar.gz
+	tar -cf - xhotplug-${VERSION} | gzip > xhotplug-${VERSION}.tar.gz
 
 distclean:
 	rm -rf xhotplug-${VERSION}
