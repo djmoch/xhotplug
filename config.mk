@@ -3,7 +3,7 @@ MANPATH := ${PREFIX}/share/man
 X11BASE := /usr/X11R6
 
 SRC = xhotplug.c
-DIST_SRC = ${SRC} Makefile config.mk xhotplug.1
+DIST_SRC = ${SRC} Makefile config.mk xhotplug.1 README LICENSE
 OBJ = ${SRC:.c=.o}
 INCS = -I${X11BASE}/include
 LIBS = -L${X11BASE}/lib -lxcb -lxcb-randr
