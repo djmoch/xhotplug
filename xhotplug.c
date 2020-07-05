@@ -23,7 +23,7 @@ enum {
 
 void
 usage(const int e_val) {
-	printf("usage: %s [-h] [-v] script\n", argv0);
+	printf("usage: %s [-hv] script\n", argv0);
 	exit(e_val);
 }
 
